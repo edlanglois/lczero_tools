@@ -12,9 +12,8 @@ setuptools.setup(
         'python-chess',
     ],
     extras_require={
-        'tf': [
-            'tensorflow',
-        ],
+        'tf': ['tensorflow'],
+        'tf-gpu': ['tensorflow-gpu'],
         'torch': ['torch'],
     },
     setup_requires=[],
