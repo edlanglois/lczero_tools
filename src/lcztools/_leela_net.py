@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-
 from collections import OrderedDict
 
 def _softmax(x):
@@ -41,8 +40,8 @@ class LeelaNet:
         policy, value = self.model(features)
         if not isinstance(policy, np.ndarray):
             # Assume it's a torch tensor
-            policy = policy.numpy()
-            value = value.numpy()
+            policy = policy.cpu().numpy()
+            value = value.cpu().numpy()
         policy, value = policy[0], value[0][0]
         # Knight promotions are represented without a suffix in leela-chess
         legal_uci = [m.uci().rstrip('n') for m in leela_board.generate_legal_moves()]
@@ -59,13 +58,17 @@ class LeelaNet:
 
 
 def load_network(backend, filename):
-    backends = ('tensorflow', 'pytorch')
+    backends = ('tensorflow', 'pytorch', 'pytorch_orig', 'pytorch_cuda')
     if backend not in backends:
         raise Exception("Supported backends are {}".format(backends))
+    kwargs = {}
     if backend == 'tensorflow':
         from lcztools._leela_tf_net import LeelaLoader
     elif backend == 'pytorch':
         from lcztools._leela_torch_eval_net import LeelaLoader
     elif backend == 'pytorch_orig':
         from lcztools._leela_torch_net import LeelaLoader
-    return LeelaNet(LeelaLoader.from_weights_file(filename))
+    elif backend == 'pytorch_cuda':
+        from lcztools._leela_torch_eval_net import LeelaLoader
+        kwargs['cuda'] = True
+    return LeelaNet(LeelaLoader.from_weights_file(filename, **kwargs))
