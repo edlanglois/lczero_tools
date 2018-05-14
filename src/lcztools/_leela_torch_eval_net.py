@@ -19,7 +19,7 @@ class Normalization(nn.Module):
     def __init__(self, channels):
         super().__init__()
         self.channels = channels
-        self.mean = nn.Parameter(torch.Tensor(channels))        
+        self.mean = nn.Parameter(torch.Tensor(channels))
         self.stddiv = nn.Parameter(torch.Tensor(channels))
 
     def forward(self, x):
@@ -43,7 +43,7 @@ class ConvBlock(nn.Module):
         out = self.conv1_bn(self.conv1(x))
         out = F.relu(out, inplace=True)
         return out
-    
+
 class ResidualBlock(nn.Module):
     def __init__(self, channels):
         super().__init__()
@@ -93,7 +93,7 @@ class LeelaModel(nn.Module):
         out_val = F.relu(self.affine_val_1(out_val), inplace=True)
         out_val = F.tanh(self.affine_val_2(out_val))
         return out_pol, out_val
-    
+
 class LeelaLoader:
     @staticmethod
     def from_weights_file(filename, train=False):

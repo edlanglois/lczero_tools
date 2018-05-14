@@ -41,7 +41,7 @@ model:
 ...
 """
 YAMLCFG = textwrap.dedent(YAMLCFG).strip()
-    
+
 
 
 class LeelaModel:
@@ -52,13 +52,13 @@ class LeelaModel:
         cfg['model']['residual_blocks'] = blocks
         cfg['name'] = 'online-{}x{}'.format(filters, blocks)
         print(yaml.dump(cfg, default_flow_style=False))
-        
+
         x = [
             tf.placeholder(tf.float32, [None, 112, 8*8]),
             tf.placeholder(tf.float32, [None, 1858]),
             tf.placeholder(tf.float32, [None, 1])
             ]
-        
+
         self.tfp = tfprocess.TFProcess(cfg)
         self.tfp.init_net(x)
         self.tfp.replace_weights(weights)
@@ -75,4 +75,4 @@ class LeelaLoader:
     @staticmethod
     def from_weights_file(filename, train=False):
         return LeelaModel(filename)
-    
+

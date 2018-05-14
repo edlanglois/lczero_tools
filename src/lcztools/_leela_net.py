@@ -29,13 +29,13 @@ class LeelaNet:
             legal_indexes = leela_board.lcz_uci_to_idx(legal_uci)
             softmaxed = _softmax(policy[legal_indexes])
             policy_legal = OrderedDict(sorted(zip(legal_uci, softmaxed),
-                                        key = lambda mp: (mp[1], mp[0]), 
+                                        key = lambda mp: (mp[1], mp[0]),
                                         reverse=True))
         else:
             policy_legal = OrderedDict()
         value = value/2 + 0.5
         return policy_legal, value
-        
+
     def evaluate(self, leela_board):
         features = leela_board.features()
         policy, value = self.model(features)
@@ -49,13 +49,13 @@ class LeelaNet:
             legal_indexes = leela_board.lcz_uci_to_idx(legal_uci)
             softmaxed = _softmax(policy[legal_indexes])
             policy_legal = OrderedDict(sorted(zip(legal_uci, softmaxed),
-                                        key = lambda mp: (mp[1], mp[0]), 
+                                        key = lambda mp: (mp[1], mp[0]),
                                         reverse=True))
         else:
             policy_legal = OrderedDict()
         value = value/2 + 0.5
         return policy_legal, value
-        
+
 
 def load_network(backend, filename):
     backends = ('tensorflow', 'pytorch')
@@ -66,5 +66,5 @@ def load_network(backend, filename):
     elif backend == 'pytorch':
         from lcztools._leela_torch_eval_net import LeelaLoader
     elif backend == 'pytorch_orig':
-        from lcztools._leela_torch_net import LeelaLoader        
+        from lcztools._leela_torch_net import LeelaLoader
     return LeelaNet(LeelaLoader.from_weights_file(filename))

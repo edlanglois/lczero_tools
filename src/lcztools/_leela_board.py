@@ -19,7 +19,7 @@ class LeelaBoard(chess.Board):
         self.lcz_stack = []
         self._lcz_transposition_counter = collections.Counter()
         self._lcz_push()
-        self._is_lcz_pushing = True    
+        self._is_lcz_pushing = True
     def _lcz_push(self):
         # print("_lcz_push")
         # Push data onto the lcz data stack after pushing board moves
@@ -35,7 +35,7 @@ class LeelaBoard(chess.Board):
             _c = self.castling_rights
             us_ooo, us_oo = (_c>>chess.A1) & 1, (_c>>chess.H1) & 1
             them_ooo, them_oo = (_c>>chess.A8) & 1, (_c>>chess.H8) & 1
-        else: 
+        else:
             # We're black
             _c = self.castling_rights
             us_ooo, us_oo = (_c>>chess.A8) & 1, (_c>>chess.H8) & 1
