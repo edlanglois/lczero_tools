@@ -10,30 +10,22 @@ def _softmax(x):
 class LeelaNet:
     def __init__(self, model):
         self.model = model
-    def evaluate_batch(self, leela_boards):
-        # TODO/Not implemented
-        raise NotImplementedError
-        features = []
-        for board in leela_boards:
-            features.append(board.features())
-        features = np.stack(features)
-        policy, value = self.model(features)
-        if not isinstance(policy[0], np.ndarray):
-            # Assume it's a torch tensor
-            policy = policy.numpy()
-            value = value.numpy()
-        policy, value = policy[0], value[0][0]
-        legal_uci = [m.uci() for m in leela_board.generate_legal_moves()]
+
+    def _legal_policy(self, full_policy, leela_board=None, legal_moves=None):
+        """A policy dict mapping legal moves to selection probabilities."""
+        if legal_moves is None:
+            legal_moves = leela_board.generate_legal_moves()
+        # Knight promotions are represented without a suffix in leela-chess
+        legal_uci = [m.uci().rstrip('n') for m in legal_moves]
         if legal_uci:
             legal_indexes = leela_board.lcz_uci_to_idx(legal_uci)
-            softmaxed = _softmax(policy[legal_indexes])
+            softmaxed = _softmax(full_policy[legal_indexes])
             policy_legal = OrderedDict(sorted(zip(legal_uci, softmaxed),
                                         key = lambda mp: (mp[1], mp[0]),
                                         reverse=True))
         else:
             policy_legal = OrderedDict()
-        value = value/2 + 0.5
-        return policy_legal, value
+        return policy_legal
 
     def evaluate(self, leela_board):
         features = leela_board.features()
@@ -43,18 +35,32 @@ class LeelaNet:
             policy = policy.cpu().numpy()
             value = value.cpu().numpy()
         policy, value = policy[0], value[0][0]
-        # Knight promotions are represented without a suffix in leela-chess
-        legal_uci = [m.uci().rstrip('n') for m in leela_board.generate_legal_moves()]
-        if legal_uci:
-            legal_indexes = leela_board.lcz_uci_to_idx(legal_uci)
-            softmaxed = _softmax(policy[legal_indexes])
-            policy_legal = OrderedDict(sorted(zip(legal_uci, softmaxed),
-                                        key = lambda mp: (mp[1], mp[0]),
-                                        reverse=True))
-        else:
-            policy_legal = OrderedDict()
-        value = value/2 + 0.5
+        policy_legal = self._legal_policy(policy, leela_board=leela_board)
+        value = value / 2 + 0.5
         return policy_legal, value
+
+    def evaluate_batch(self, leela_boards):
+        """Evaluate a batch of boards.
+
+        The boards are each evaluated only once and in order so `leela_boards`
+        may be a generator.
+        """
+        features = []
+        legal_moves_list = []
+        for leela_board in leela_boards:
+            features.append(leela_board.features())
+            legal_moves_list.append(leela_board.generate_legal_moves())
+        features = np.array(features)
+        policies, values = self.model(features)
+        if not isinstance(policies, np.ndarray):
+            # Assume it's a torch tensor
+            policies = policies.cpu().numpy()
+            values = values.cpu().numpy()
+        values = values.squeeze(-1) / 2 + 0.5
+        return [
+            (self._legal_policy(policy, legal_moves=legal_moves), value)
+            for policy, legal_moves, value
+            in zip(policies, legal_moves_list, values)]
 
 
 def load_network(backend, filename):
